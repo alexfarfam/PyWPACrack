@@ -25,7 +25,8 @@ def upgrade():
     cmd1=""
     cmd2=""
     if IS_WIFISLAX:
-        cmd1="sudo slapt-get --update -y" #&& sudo slapt-get --upgrade -y"
+        return
+        #cmd1="sudo slapt-get --update -y" #&& sudo slapt-get --upgrade -y"
     else:
         cmd1="sudo apt update -y && sudo apt-get upgrade -y"
         cmd2='echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | sudo tee /etc/apt/sources.list && echo "deb http://http.kali.org/kali kali-last-snapshot main contrib non-free" | sudo tee /etc/apt/sources.list'
