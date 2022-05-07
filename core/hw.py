@@ -3,9 +3,9 @@ from os import system
 from string import hexdigits
 from random import choice
 
-MONITOR_MODE_COMMAND='sudo ifconfig {} down && sudo iwconfig {} mode monitor && sudo ifconfig {} up'
-MANAGEMEND_MODE_COMMAND='sudo ifconfig {} down && sudo iwconfig {} mode managed && sudo ifconfig {} up'
-CHANGE_CHANNEL='sudo iwconfig {} channel {}'
+MONITOR_MODE_COMMAND='sudo ifconfig {0} down && sudo iwconfig {0} mode monitor && sudo ifconfig {0} up'
+MANAGEMEND_MODE_COMMAND='sudo ifconfig {0} down && sudo iwconfig {0} mode managed && sudo ifconfig {0} up'
+CHANGE_CHANNEL='sudo iwconfig {0} channel {1}'
 
 START_NETWORK_MANAGER="sudo service NetworkManager start"
 STOP_NETWORK_MANAGER="sudo service NetworkManager stop"
@@ -38,7 +38,7 @@ def get_iws():
 
 def monitor_mode(iw):
     system('sudo airmon-ng check kill')
-    output=getoutput(MONITOR_MODE_COMMAND.format(iw, iw, iw))
+    output=getoutput(MONITOR_MODE_COMMAND.format(iw))
     if output.strip() == '':
         return True
     else:
@@ -46,6 +46,7 @@ def monitor_mode(iw):
 
 def managed_mode(iw):
     system(f'sudo airmon-ng stop {iw}')
+    system(MANAGEMEND_MODE_COMMAND.format(iw))
     system(RESTART_NETWORK_MANANGER)
     return True
 

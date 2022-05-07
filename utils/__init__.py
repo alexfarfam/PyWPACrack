@@ -1,12 +1,18 @@
-from os import makedirs, remove, listdir, getcwd, walk, getuid
-from os.path import split as split_path, expanduser, join as join_path
-from urllib.request import urlretrieve
-from gzip import decompress
+from os import makedirs, remove, getcwd, walk, getuid
+from os.path import split as split_path, expanduser, join as join_path, getsize
 from datetime import datetime
 
-from colorize import colorize
+from .colorize import colorize
 
 IS_ROOT=getuid() == 0
+
+def _size(num, suffix="B"):
+    for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
+        if abs(num) < 1024.0:
+            return f"{num:3.1f}{unit}{suffix}"
+        num /= 1024.0
+    return f"{num:.1f}Yi{suffix}"
+
 
 def _get_response(banner, values, question):
     while True:
@@ -42,29 +48,33 @@ def verify_pathdir():
                 makedirs(path_dir)
                 return path_cap
 
-def get_wordlist():
-    wordlists=[path for path in listdir(getcwd()) if path.endswith('.txt') or path.endswith('.text')]
-    path_wordlist=_get_response('Diccionarios Disponibles: ', wordlists, 'Eliga un diccionario: ')
-    _all=[]
-
-
 def _scan(_root):
     possible_wordlists=[]
     for root in walk(expanduser(_root)):
         subroot=root[0]
-        dirs=root[1]
         files=root[2]
 
-        for dir in dirs:  
-            for file in files:
-                path=join_path(subroot, dir, file)
-                if "license" in path.lower() or "url" in path.lower() or "index" in path.lower() or "chrome" in path.lower() or "host" in path.lower() or "enlaces" in path.lower() or "proxys" in path.lower() or "test" in path.lower() or "commit" in path.lower() or "notice" in path.lower() or "data" in path.lower() or "log" in path.lower() or "readme" in path.lower():
-                    continue
-                else:
-                    if "password" in path.lower() or "dict" in path.lower() or "rockyou" in path.lower() or "common" in path.lower():
-                        if path.endswith('.txt') or path.endswith('.text'):
-                            possible_wordlists.append(path)
-        
+        for file in files:
+            path=join_path(subroot, file)
+            if "license" in path.lower() or "url" in path.lower() or "index" in path.lower() or "chrome" in path.lower() or "host" in path.lower() or "enlaces" in path.lower() or "proxys" in path.lower() or "test" in path.lower() or "commit" in path.lower() or "notice" in path.lower() or "data" in path.lower() or "log" in path.lower() or "readme" in path.lower():
+                continue
+            else:
+                if "password" in path.lower() or "dict" in path.lower() or "rockyou" in path.lower() or "common" in path.lower():
+                    if path.endswith('.txt') or path.endswith('.text'):
+                        size=_size(getsize(path))
+                        possible_wordlists.append(path+"\t"+size)
     return possible_wordlists
 
-print(_scan("~"))
+def get_wordlist():
+    wordlists=[]
+    for possible_path in (getcwd(), expanduser('~')):
+        dicts=_scan(possible_path)
+        wordlists.extend(dicts)
+    
+    _wordlists=set(wordlists)
+    _wordlists=list(_wordlists)
+    print(wordlists)
+    _wordlists.append("Escribir Ruta.")
+    _wordlists.append("Usar JSDictor.")
+    path_wordlist=_get_response('Diccionarios Disponibles: ', _wordlists, 'Eliga un diccionario: ')
+    return path_wordlist

@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 
-sudo apt-get update && sudo apt-get upgrade
-sudo apt-get install aircrack-ng
-sudo apt-get install macchanger
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get install aircrack-ng -y
+sudo apt-get install macchanger -y
 
 pip3 install -r requirements.txt
 

