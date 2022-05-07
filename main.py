@@ -125,7 +125,7 @@ def main():
         def verify_mode_monitor():
             colorize(f'Poniendo interfaz \'{iface_name}\' en modo monitor!', level='info')
             has_mode_monitor=monitor_mode(iface_name)
-            if not has_mode_monitor:
+            if not has_mode_monitor[0]:
                 not_drivers='null' in has_mode_monitor[1]
                 airmon_bussy='Error -16 likely means your card was set back to station mode by something' in has_mode_monitor[1]
                 colorize(f'Error al intentar poner la NIC {iface_name} en modo monitor!', level='error', _exit=not not_drivers or not airmon_bussy)
@@ -137,7 +137,7 @@ def main():
                     if not has_connection():
                         colorize(f'Se necesita de conexion a internet para poder instalar los drivers necesarios!', level='error', _exit=True)
 
-                    install_drivers=_get_response('Instalar drivers: ', ('Si', 'No'), '¿Desea instalar los drivers necesarios?: ')
+                    install_drivers=_get_response('Instalar drivers: ', ('Si', 'No'), '¿Desea instalar los drivers necesarios?: ').lower() == "si"
                     if install_drivers:
                         colorize('Realizando la actualizacion de repositorios y herramientas...', level='info', clear=True)
                         upgrade()

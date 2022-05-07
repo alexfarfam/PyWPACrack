@@ -40,9 +40,9 @@ def monitor_mode(iw):
     system('sudo airmon-ng check kill')
     output=getoutput(MONITOR_MODE_COMMAND.format(iw))
     if output.strip() == '':
-        return True
+        return True, output
     else:
-        return False
+        return False, output
 
 def managed_mode(iw):
     system(f'sudo airmon-ng stop {iw}')

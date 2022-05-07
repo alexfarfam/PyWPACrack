@@ -67,13 +67,12 @@ def _scan(_root):
 
 def get_wordlist():
     wordlists=[]
-    for possible_path in (getcwd(), expanduser('~')):
+    for possible_path in (getcwd(), getcwd()):
         dicts=_scan(possible_path)
         wordlists.extend(dicts)
     
     _wordlists=set(wordlists)
     _wordlists=list(_wordlists)
-    print(wordlists)
     _wordlists.append("Escribir Ruta.")
     _wordlists.append("Usar JSDictor.")
     path_wordlist=_get_response('Diccionarios Disponibles: ', _wordlists, 'Eliga un diccionario: ')
