@@ -146,9 +146,12 @@ def main():
                         install_essentials()
                         colorize('Compilando e instalando custom driver...', level='info', clear=True)
                         install_driver()
-                        if not IS_WIFISLAX:
+                        if IS_WIFISLAX:
+                            colorize("Drivers instalados, vuelva a iniciar el script!", _exit=True)
+                        else:
                             colorize('Reiniciando sistema para aplicar cambios...', level='info', clear=True, timeout=4)
                             system("sudo systemctl reboot")
+
 
                     else:
                         exit(0)

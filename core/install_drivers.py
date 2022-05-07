@@ -50,8 +50,9 @@ def install_essentials():
     return output1, output2
 
 def install_driver():
+    repo="https://github.com/kimocoder/rtl8188eus" if IS_WIFISLAX else "https://github.com/aircrack-ng/rtl8188eus.git "
     cmd1="echo 'blacklist r8188eu'|sudo tee -a '/etc/modprobe.d/realtek.conf'"
-    cmd2="cd /tmp/ && git clone https://github.com/aircrack-ng/rtl8188eus.git && cd rtl8188eus && make  && sudo make install"
+    cmd2=f"cd /tmp/ && git clone {repo} && cd rtl8188eus && make && sudo make install"
     cmd3=""
     if not IS_WIFISLAX:
         cmd3="cd /var/lib/shim-signed/mok && sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n 8188eu)"
