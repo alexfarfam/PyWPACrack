@@ -1,4 +1,4 @@
-from os import makedirs, remove, getcwd, walk, getuid
+from os import environ, makedirs, remove, getcwd, walk, getuid
 from os.path import split as split_path, expanduser, join as join_path, getsize
 from datetime import datetime
 
@@ -67,7 +67,7 @@ def _scan(_root):
 
 def get_wordlist():
     wordlists=[]
-    for possible_path in (getcwd(), getcwd()):
+    for possible_path in (getcwd(), environ['HOME']):
         dicts=_scan(possible_path)
         wordlists.extend(dicts)
     
