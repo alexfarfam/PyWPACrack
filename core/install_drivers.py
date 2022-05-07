@@ -19,17 +19,29 @@ def _get_ouput(cmd):
     elif err:
         return False, err
 
+IS_WIFISLAX="wifislax" in _get_ouput("uname -a")[1] 
 def upgrade():
-    cmd1="sudo apt update -y && sudo apt-get upgrade -y"
-    cmd2='echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | sudo tee /etc/apt/sources.list && echo "deb http://http.kali.org/kali kali-last-snapshot main contrib non-free" | sudo tee /etc/apt/sources.list'
+    cmd1=""
+    cmd2=""
+    if IS_WIFISLAX:
+        cmd1="sudo slapt-get --update -y && sudo slapt-get --upgrade -y"
+    else:
+        cmd1="sudo apt update -y && sudo apt-get upgrade -y"
+        cmd2='echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | sudo tee /etc/apt/sources.list && echo "deb http://http.kali.org/kali kali-last-snapshot main contrib non-free" | sudo tee /etc/apt/sources.list'
 
     output1=_get_ouput(cmd1)
     output2=_get_ouput(cmd2)
     return output1, output2
 
 def install_essentials():
-    cmd1="sudo apt-get install linux-headers-$(uname -r)"
-    cmd2="sudo apt install bc && sudo apt-get install build-essential && sudo apt-get install libelf-dev && sudo apt install dkms"
+    cmd1=""
+    cmd2=""
+    if IS_WIFISLAX:
+        cmd1="sudo slapt-get -i linux-headers-$(uname -r)"
+        cmd2="sudo slapt-get install build-essential && sudo slapt-get install libelf-dev && sudo slapt-get install dkms"
+    else:
+        cmd1="sudo apt-get install linux-headers-$(uname -r)"
+        cmd2="sudo apt install bc && sudo apt-get install build-essential && sudo apt-get install libelf-dev && sudo apt install dkms"
     output1=_get_ouput(cmd1)
     output2=_get_ouput(cmd2)
     return output1, output2

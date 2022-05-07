@@ -8,7 +8,7 @@ from multiprocessing import cpu_count
 from core.get_clients import get_aps_recursive, get_clients
 from core.hw import get_iws, monitor_mode, managed_mode,change_channel, gen_random_mac, change_mac, system
 from core.commands import capture_data, deauth, crack
-from core.install_drivers import has_connection, upgrade, install_essentials, install_driver 
+from core.install_drivers import has_connection, upgrade, install_essentials, install_driver, IS_WIFISLAX
 
 from utils import _get_response, verify_pathdir, get_wordlist, IS_ROOT
 from utils.colorize import colorize, banner
@@ -129,7 +129,7 @@ def main():
     
                 not_drivers='SET failed' in has_mode_monitor[1]
                 airmon_bussy='Error -16 likely means your card was set back to station mode by something' in has_mode_monitor[1]
-                colorize(f'Error al intentar poner la NIC {iface_name} en modo monitor!', level='error', _exit=not not_drivers or not airmon_bussy)
+                #colorize(f'Error al intentar poner la NIC {iface_name} en modo monitor!', level='error', _exit=not not_drivers or not airmon_bussy)
 
                 if airmon_bussy:
                     system(f'sudo airmon-ng stop {iface_name}')
@@ -146,8 +146,9 @@ def main():
                         install_essentials()
                         colorize('Compilando e instalando custom driver...', level='info', clear=True)
                         install_driver()
-                        colorize('Reiniciando sistema para aplicar cambios...', level='info', clear=True, timeout=4)
-                        system("sudo systemctl reboot")
+                        if not IS_WIFISLAX:
+                            colorize('Reiniciando sistema para aplicar cambios...', level='info', clear=True, timeout=4)
+                            system("sudo systemctl reboot")
 
                     else:
                         exit(0)

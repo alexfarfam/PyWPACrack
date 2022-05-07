@@ -1,0 +1,6 @@
+sudo slapt-get install build-essential && sudo slapt-get install libelf-dev && sudo slapt-get install dkms
+
+echo 'blacklist r8188eu'|sudo tee -a '/etc/modprobe.d/realtek.conf
+cd /tmp/ && git clone https://github.com/aircrack-ng/rtl8188eus.git && cd rtl8188eus && make  && sudo make install
+cd /var/lib/shim-signed/mok && sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n 8188eu)
+sudo modprobe 8188eu
